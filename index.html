@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Master Workflow Canvas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Canvas Element -->
+  <canvas id="infinite-canvas"></canvas>
+
+  <!-- Overlay UI -->
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-dot"></div>
+      <span class="brand-title">Master Workflow Canvas</span>
+    </div>
+  </header>
+
+  <!-- Navigation / Zoom HUD -->
+  <div class="hud-controls">
+    <button id="zoom-out-btn" class="hud-btn" title="Zoom Out ( - )" aria-label="Zoom Out">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+    </button>
+    <button id="zoom-reset-btn" class="hud-btn zoom-level-display" title="Reset to 100% ( 0 )" aria-label="Reset Zoom">
+      <span id="zoom-value">100%</span>
+    </button>
+    <button id="zoom-in-btn" class="hud-btn" title="Zoom In ( + )" aria-label="Zoom In">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+    </button>
+    <div class="hud-divider"></div>
+    <button id="recenter-btn" class="hud-btn" title="Recenter Origin" aria-label="Recenter Canvas">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M3 12h3m12 0h3M12 3v3m0 12v3"></path>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Keyboard & Mouse Helpers -->
+  <div class="instructions-panel">
+    <div class="instruction-item"><kbd>Scroll</kbd> or <kbd>Pinch</kbd> to zoom</div>
+    <div class="instruction-item"><kbd>Drag</kbd> or <kbd>Space + Drag</kbd> to pan</div>
+    <div class="instruction-item"><kbd>+</kbd> / <kbd>-</kbd> / <kbd>0</kbd> shortcuts</div>
+  </div>
+
+  <script src="canvas.js"></script>
+</body>
+</html>
