@@ -1,14 +1,18 @@
 /**
  * Master Workflow Canvas
  * Pure vanilla JavaScript Infinite Canvas with Cream Background, Dotted Grid,
- * Multi-Tab Support, and Permanent Tab Saving.
+ * Multi-Tab Support, Permanent Tab Saving, GitHub Direct Sync, and Cross-Device Link Sharing.
  */
 
 (function () {
   'use strict';
 
-  // Local Storage Key for Permanent Tabs
-  const STORAGE_KEY = 'MWC_SAVED_TABS_V1';
+  // Persistence & GitHub Configuration
+  const LOCAL_STORAGE_KEY = 'MWC_SAVED_TABS_V1';
+  const GITHUB_TOKEN_KEY = 'MWC_GITHUB_PAT';
+  const GITHUB_REPO = 'aditya-Pratap15/Master-workflow-canvas';
+  const GITHUB_FILE_PATH = 'tabs-data.json';
+  const GITHUB_BRANCH = 'main';
 
   const canvas = document.getElementById('infinite-canvas');
   const ctx = canvas.getContext('2d');
@@ -24,24 +28,29 @@
   const tabsList = document.getElementById('tabs-list');
   const addTabBtn = document.getElementById('add-tab-btn');
   const lockTabBtn = document.getElementById('lock-tab-btn');
-  const lockIcon = document.getElementById('lock-icon');
   const lockPopup = document.getElementById('lock-popup');
   const popupTabTitle = document.getElementById('popup-tab-title');
   const popupStatusBadge = document.getElementById('popup-status-badge');
   const popupSaveBtn = document.getElementById('popup-save-btn');
   const popupSaveLabel = document.getElementById('popup-save-label');
+  const popupGithubSyncBtn = document.getElementById('popup-github-sync-btn');
+  const popupGithubLabel = document.getElementById('popup-github-label');
+  const githubSettingsPanel = document.getElementById('github-settings-panel');
+  const githubPatInput = document.getElementById('github-pat-input');
+  const saveTokenBtn = document.getElementById('save-token-btn');
+  const popupShareLinkBtn = document.getElementById('popup-share-link-btn');
   const popupDeleteBtn = document.getElementById('popup-delete-btn');
   const toast = document.getElementById('toast');
 
   // Colors & Configuration
   const THEME = {
     bg: '#F8F5EE',
-    dotBaseColor: [184, 176, 162], // #B8B0A2 in RGB
+    dotBaseColor: [184, 176, 162],
     originColor: 'rgba(224, 122, 95, 0.65)',
     baseGridSize: 40,
-    minScale: 0.0001,   // 0.01% (extremely far out)
-    maxScale: 10000,    // 1,000,000% (extreme zoom in)
-    dotRadius: 1.25,     // screen pixels
+    minScale: 0.0001,
+    maxScale: 10000,
+    dotRadius: 1.25,
   };
 
   // Canvas Transform State
@@ -65,7 +74,7 @@
   let activeTabId = null;
 
   /**
-   * Toast notification helper
+   * Display toast notification
    */
   function showToast(message) {
     if (toastTimeout) clearTimeout(toastTimeout);
@@ -73,7 +82,7 @@
     toast.classList.remove('hidden');
     toastTimeout = setTimeout(() => {
       toast.classList.add('hidden');
-    }, 2400);
+    }, 2800);
   }
 
   /**
@@ -82,18 +91,43 @@
   function persistSavedTabs() {
     try {
       const savedList = tabs.filter(t => t.isSaved);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(savedList));
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(savedList));
     } catch (e) {
       console.error('Failed to save tabs to localStorage', e);
     }
   }
 
   /**
-   * Load permanently saved tabs from localStorage on startup
+   * Decode shared data from URL hash
+   */
+  function decodeSharedData(hashStr) {
+    try {
+      const raw = hashStr.replace(/^#data=/, '');
+      const decoded = decodeURIComponent(escape(atob(decodeURIComponent(raw))));
+      const parsed = JSON.parse(decoded);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.map((t, idx) => ({
+          id: t.id || 'tab_shared_' + idx,
+          name: t.name || 'Tab ' + (idx + 1),
+          isSaved: true,
+          scale: typeof t.scale === 'number' ? t.scale : 1.0,
+          panX: typeof t.panX === 'number' ? t.panX : window.innerWidth / 2,
+          panY: typeof t.panY === 'number' ? t.panY : window.innerHeight / 2,
+          content: Array.isArray(t.content) ? t.content : []
+        }));
+      }
+    } catch (e) {
+      console.warn('Failed to parse shared URL hash data', e);
+    }
+    return null;
+  }
+
+  /**
+   * Load permanently saved tabs from localStorage
    */
   function loadPersistedTabs() {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed) && parsed.length > 0) {
@@ -117,31 +151,82 @@
   /**
    * Initialize tabs structure
    */
-  function initTabs() {
-    const loaded = loadPersistedTabs();
-    if (loaded && loaded.length > 0) {
-      tabs = loaded;
-    } else {
-      tabs = [
-        {
-          id: 'tab_' + Date.now(),
-          name: 'Tab 1',
-          isSaved: false,
-          scale: 1.0,
-          panX: window.innerWidth / 2,
-          panY: window.innerHeight / 2,
-          content: []
-        }
-      ];
+  async function initTabs() {
+    // 1. Check if user opened a cross-device share link (#data=...)
+    if (window.location.hash.startsWith('#data=')) {
+      const shared = decodeSharedData(window.location.hash);
+      if (shared && shared.length > 0) {
+        tabs = shared;
+        activeTabId = tabs[0].id;
+        persistSavedTabs();
+        history.replaceState(null, '', window.location.pathname);
+        showToast('🎉 Loaded tabs from shared link!');
+        finishTabInit();
+        return;
+      }
     }
+
+    // 2. Check localStorage
+    const localSaved = loadPersistedTabs();
+    if (localSaved && localSaved.length > 0) {
+      tabs = localSaved;
+      activeTabId = tabs[0].id;
+      finishTabInit();
+      return;
+    }
+
+    // 3. Fallback: Fetch default tabs-data.json from repository
+    try {
+      const res = await fetch(`tabs-data.json?_t=${Date.now()}`);
+      if (res.ok) {
+        const repoTabs = await res.json();
+        if (Array.isArray(repoTabs) && repoTabs.length > 0) {
+          tabs = repoTabs.map((t, idx) => ({
+            id: t.id || 'tab_repo_' + idx,
+            name: t.name || 'Tab ' + (idx + 1),
+            isSaved: true,
+            scale: typeof t.scale === 'number' ? t.scale : 1.0,
+            panX: typeof t.panX === 'number' ? t.panX : window.innerWidth / 2,
+            panY: typeof t.panY === 'number' ? t.panY : window.innerHeight / 2,
+            content: Array.isArray(t.content) ? t.content : []
+          }));
+          activeTabId = tabs[0].id;
+          finishTabInit();
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('Could not fetch tabs-data.json', e);
+    }
+
+    // 4. Default fresh Tab 1
+    tabs = [
+      {
+        id: 'tab_' + Date.now(),
+        name: 'Tab 1',
+        isSaved: false,
+        scale: 1.0,
+        panX: window.innerWidth / 2,
+        panY: window.innerHeight / 2,
+        content: []
+      }
+    ];
     activeTabId = tabs[0].id;
+    finishTabInit();
+  }
+
+  function finishTabInit() {
     applyCurrentTabState();
     renderTabsList();
     updateLockUI();
+    const savedToken = localStorage.getItem(GITHUB_TOKEN_KEY);
+    if (savedToken && githubPatInput) {
+      githubPatInput.value = savedToken;
+    }
   }
 
   /**
-   * Get currently active tab object
+   * Get currently active tab
    */
   function getActiveTab() {
     return tabs.find(t => t.id === activeTabId) || tabs[0];
@@ -191,7 +276,7 @@
       titleEl.className = 'tab-title';
       titleEl.textContent = tab.name;
 
-      // Allow double-click to rename
+      // Double-click to rename
       titleEl.addEventListener('dblclick', (e) => {
         e.stopPropagation();
         titleEl.contentEditable = 'true';
@@ -255,10 +340,7 @@
   function switchTab(targetId) {
     if (targetId === activeTabId) return;
 
-    // Save previous active tab state
     syncActiveTabState();
-
-    // Switch
     activeTabId = targetId;
     applyCurrentTabState();
     renderTabsList();
@@ -273,7 +355,6 @@
   function createNewTab() {
     syncActiveTabState();
 
-    // Determine next sequential name
     let nextNum = tabs.length + 1;
     while (tabs.some(t => t.name === `Tab ${nextNum}`)) {
       nextNum++;
@@ -304,7 +385,7 @@
       lockTabBtn.title = 'Saved permanently — Click for options';
     } else {
       lockTabBtn.classList.remove('is-saved');
-      lockTabBtn.title = 'Tab Options & Permanent Save';
+      lockTabBtn.title = 'Tab Options & Cloud Persistence';
     }
   }
 
@@ -321,12 +402,12 @@
       popupStatusBadge.textContent = 'Permanently Saved';
       popupStatusBadge.className = 'popup-status-badge saved';
       popupSaveBtn.classList.add('is-saved');
-      popupSaveLabel.textContent = 'Update Saved State';
+      popupSaveLabel.textContent = 'Saved (Local Browser)';
     } else {
       popupStatusBadge.textContent = 'Temporary';
       popupStatusBadge.className = 'popup-status-badge';
       popupSaveBtn.classList.remove('is-saved');
-      popupSaveLabel.textContent = 'Save this tab permanently';
+      popupSaveLabel.textContent = 'Save this tab (Local)';
     }
   }
 
@@ -348,10 +429,11 @@
   function closeLockPopup() {
     lockPopup.classList.add('hidden');
     lockTabBtn.classList.remove('active-popup');
+    githubSettingsPanel.classList.add('hidden');
   }
 
   /**
-   * Handle permanently saving the current tab
+   * Handle permanently saving the current tab in browser
    */
   function handleSaveCurrentTab() {
     const active = getActiveTab();
@@ -364,8 +446,121 @@
     renderTabsList();
     updateLockUI();
     updatePopupInfo();
-    showToast(`"${active.name}" permanently saved!`);
+    showToast(`"${active.name}" saved in browser!`);
     setTimeout(closeLockPopup, 400);
+  }
+
+  /**
+   * Handle Push / Commit to GitHub repository
+   */
+  async function handlePushToGitHub() {
+    const token = localStorage.getItem(GITHUB_TOKEN_KEY);
+    if (!token) {
+      githubSettingsPanel.classList.remove('hidden');
+      githubPatInput.focus();
+      showToast('Enter your GitHub Personal Access Token first');
+      return;
+    }
+
+    syncActiveTabState();
+    const active = getActiveTab();
+    if (active) active.isSaved = true;
+    persistSavedTabs();
+    renderTabsList();
+    updateLockUI();
+
+    showToast('Pushing to GitHub repo...');
+    popupGithubLabel.textContent = 'Pushing to GitHub...';
+
+    try {
+      const fileUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`;
+      
+      // Get current SHA
+      const getRes = await fetch(fileUrl, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github+json'
+        }
+      });
+
+      let sha = null;
+      if (getRes.ok) {
+        const fileInfo = await getRes.json();
+        sha = fileInfo.sha;
+      }
+
+      // Prepare payload
+      const tabsToCommit = tabs.filter(t => t.isSaved).length > 0 ? tabs.filter(t => t.isSaved) : tabs;
+      const jsonString = JSON.stringify(tabsToCommit, null, 2);
+      const utf8Base64 = btoa(unescape(encodeURIComponent(jsonString)));
+
+      const putBody = {
+        message: `sync: update canvas tabs [${new Date().toLocaleTimeString()}]`,
+        content: utf8Base64,
+        branch: GITHUB_BRANCH
+      };
+      if (sha) {
+        putBody.sha = sha;
+      }
+
+      const putRes = await fetch(fileUrl, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github+json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(putBody)
+      });
+
+      if (!putRes.ok) {
+        const err = await putRes.json();
+        throw new Error(err.message || 'GitHub API returned an error');
+      }
+
+      showToast('✅ Saved to GitHub! Live for all devices.');
+      updatePopupInfo();
+      setTimeout(closeLockPopup, 500);
+    } catch (err) {
+      console.error('GitHub Push failed:', err);
+      showToast('❌ GitHub Error: ' + (err.message || 'Check token'));
+      githubSettingsPanel.classList.remove('hidden');
+    } finally {
+      popupGithubLabel.textContent = 'Push to GitHub (All Devices)';
+    }
+  }
+
+  /**
+   * Copy Cross-Device Share Link
+   */
+  function handleCopyShareLink() {
+    syncActiveTabState();
+    const tabsToShare = tabs.length > 0 ? tabs : [getActiveTab()];
+    try {
+      const jsonStr = JSON.stringify(tabsToShare);
+      const b64 = btoa(unescape(encodeURIComponent(jsonStr)));
+      const encoded = encodeURIComponent(b64);
+      const shareUrl = `${window.location.origin}${window.location.pathname}#data=${encoded}`;
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(shareUrl).then(() => {
+          showToast('🔗 Link copied! Open on any device.');
+          setTimeout(closeLockPopup, 400);
+        });
+      } else {
+        const temp = document.createElement('input');
+        temp.value = shareUrl;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand('copy');
+        document.body.removeChild(temp);
+        showToast('🔗 Link copied! Open on any device.');
+        setTimeout(closeLockPopup, 400);
+      }
+    } catch (e) {
+      console.error('Failed to create share link', e);
+      showToast('Failed to copy link');
+    }
   }
 
   /**
@@ -379,7 +574,6 @@
     const currentIndex = tabs.findIndex(t => t.id === active.id);
 
     if (tabs.length === 1) {
-      // If only 1 tab, reset it to a fresh unsaved Tab 1
       active.name = 'Tab 1';
       active.isSaved = false;
       active.scale = 1.0;
@@ -396,11 +590,9 @@
       return;
     }
 
-    // Remove tab
     tabs.splice(currentIndex, 1);
     persistSavedTabs();
 
-    // Select nearest tab
     const nextIndex = Math.min(currentIndex, tabs.length - 1);
     activeTabId = tabs[nextIndex].id;
 
@@ -577,9 +769,10 @@
   // --- Pointer & Drag Events ---
 
   function onPointerDown(e) {
-    // If click was on canvas, close popup if open
     if (!lockPopup.classList.contains('hidden')) {
-      closeLockPopup();
+      if (!lockPopup.contains(e.target) && !lockTabBtn.contains(e.target)) {
+        closeLockPopup();
+      }
     }
 
     activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -691,7 +884,22 @@
   addTabBtn.addEventListener('click', createNewTab);
   lockTabBtn.addEventListener('click', toggleLockPopup);
   popupSaveBtn.addEventListener('click', handleSaveCurrentTab);
+  popupGithubSyncBtn.addEventListener('click', handlePushToGitHub);
+  popupShareLinkBtn.addEventListener('click', handleCopyShareLink);
   popupDeleteBtn.addEventListener('click', handleDeleteCurrentTab);
+
+  // Save GitHub Token
+  saveTokenBtn.addEventListener('click', () => {
+    const val = githubPatInput.value.trim();
+    if (val) {
+      localStorage.setItem(GITHUB_TOKEN_KEY, val);
+      githubSettingsPanel.classList.add('hidden');
+      showToast('GitHub token saved locally');
+    } else {
+      localStorage.removeItem(GITHUB_TOKEN_KEY);
+      showToast('GitHub token removed');
+    }
+  });
 
   // Close popup when clicking outside
   document.addEventListener('click', (e) => {

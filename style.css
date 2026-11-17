@@ -16,6 +16,10 @@
   --accent-terracotta: #D96B43;
   --accent-green: #2E7D32;
   --accent-green-bg: rgba(46, 125, 50, 0.1);
+  --accent-github: #24292F;
+  --accent-github-bg: rgba(36, 41, 47, 0.07);
+  --accent-blue: #1976D2;
+  --accent-blue-bg: rgba(25, 118, 210, 0.08);
   --danger-red: #D32F2F;
   --danger-bg: rgba(211, 47, 47, 0.08);
 }
@@ -79,8 +83,8 @@ body.is-dragging #infinite-canvas {
   align-items: center;
   gap: 6px;
   overflow-x: auto;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   padding: 2px 0;
 }
 
@@ -183,12 +187,12 @@ body.is-dragging #infinite-canvas {
 }
 
 /* ==========================================================================
-   Minimalist Lock & Tab Options Popup
+   Minimalist Lock & Cloud Options Popup
    ========================================================================== */
 
 .lock-popup {
   margin-top: 10px;
-  width: 250px;
+  width: 275px;
   background: var(--panel-bg);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
@@ -235,14 +239,14 @@ body.is-dragging #infinite-canvas {
   font-size: 13.5px;
   font-weight: 600;
   color: var(--text-main);
-  max-width: 130px;
+  max-width: 140px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .popup-status-badge {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 600;
   padding: 2px 7px;
   border-radius: 9999px;
@@ -304,12 +308,95 @@ body.is-dragging #infinite-canvas {
   background: rgba(46, 125, 50, 0.16);
 }
 
+.popup-action-btn.btn-github {
+  color: var(--accent-github);
+  background: var(--accent-github-bg);
+}
+
+.popup-action-btn.btn-github:hover {
+  background: rgba(36, 41, 47, 0.12);
+}
+
+.popup-action-btn.btn-share {
+  color: var(--accent-blue);
+  background: var(--accent-blue-bg);
+}
+
+.popup-action-btn.btn-share:hover {
+  background: rgba(25, 118, 210, 0.14);
+}
+
 .popup-action-btn.btn-delete {
   color: var(--danger-red);
 }
 
 .popup-action-btn.btn-delete:hover {
   background: var(--danger-bg);
+}
+
+/* GitHub Settings Panel Accordion */
+.github-settings-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 9px 10px;
+  background: rgba(44, 40, 37, 0.03);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  margin: 2px 0;
+}
+
+.github-settings-panel.hidden {
+  display: none;
+}
+
+.github-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.github-input-group {
+  display: flex;
+  gap: 5px;
+}
+
+.github-pat-input {
+  flex: 1;
+  background: #FFFFFF;
+  border: 1px solid rgba(44, 40, 37, 0.14);
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 11.5px;
+  font-family: inherit;
+  color: var(--text-main);
+  outline: none;
+}
+
+.github-pat-input:focus {
+  border-color: var(--text-main);
+}
+
+.github-save-token-btn {
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: none;
+  background: var(--text-main);
+  color: #FAF8F5;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.github-save-token-btn:hover {
+  opacity: 0.9;
+}
+
+.github-hint {
+  font-size: 10px;
+  color: var(--text-dim);
+  line-height: 1.3;
 }
 
 /* ==========================================================================
@@ -394,6 +481,8 @@ body.is-dragging #infinite-canvas {
   z-index: 50;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   pointer-events: none;
+  text-align: center;
+  max-width: 90vw;
 }
 
 .toast.hidden {
@@ -409,5 +498,8 @@ body.is-dragging #infinite-canvas {
   .top-nav-bar {
     top: 14px;
     left: 14px;
+  }
+  .lock-popup {
+    width: 250px;
   }
 }
