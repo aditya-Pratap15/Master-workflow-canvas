@@ -1,23 +1,31 @@
 # Master Workflow Canvas
 
-A clean, minimalist, high-performance infinite canvas web application featuring a warm cream background, adaptive dotted grid, and boundless zoom & pan capabilities.
+A clean, minimalist, high-performance infinite canvas web application featuring a warm cream background, adaptive dotted grid, boundless zoom & pan, multi-tab support, and permanent tab saving.
 
-Live Demo on GitHub Pages: `https://aditya-pratap15.github.io/Master-workflow-canvas/` *(Once enabled in Settings)*
+Live Demo on GitHub Pages: `https://aditya-pratap15.github.io/Master-workflow-canvas/`
 
 ---
 
 ## ✨ Features
 
+- **Multi-Tab System**:
+  - **Tabs Bar**: Located at the top-left corner with sleek pill design.
+  - **Circular Plus Button `(+)`**: Instantly creates a new tab with independent coordinates and state.
+  - **Switch Tabs**: Seamless switching between tabs, preserving zoom, pan, and content per tab.
+  - **Rename Tabs**: Double-click any tab title to rename it.
+- **Permanent Tab Saving & Mini Lock**:
+  - **Mini Lock Button `🔒`**: Placed right beside the circular plus button.
+  - **Minimal Popup**: Click the lock button to toggle options to **Save this tab permanently** or **Delete this tab**.
+  - **Permanent Persistence**: Once saved, the tab and its content are stored in `localStorage`, meaning whenever you open or reload the website anytime, that tab is always there.
+  - **Saved Indicator**: Permanently saved tabs feature a subtle padlock indicator and persistent state.
 - **Warm Cream Aesthetic**: Carefully chosen paper-cream background palette (`#F8F5EE`) with soft, high-contrast grid points.
-- **Adaptive Dotted Grid (LOD)**: Multi-octave level-of-detail algorithm ensures grid dots maintain optimal visual spacing and never clutter or vanish when zooming.
+- **Adaptive Dotted Grid (LOD)**: Multi-octave level-of-detail algorithm ensures grid dots maintain optimal visual spacing at any zoom level.
 - **Boundless Zoom**: Zoom range from **0.0001x (0.01%)** to **10,000x (1,000,000%)** centered precisely on your cursor.
 - **Intuitive Navigation**:
-  - **Pan / Drag**: Left-click drag, right-click drag, or spacebar + drag.
+  - **Pan / Drag**: Left-click drag, right-click drag, or touch drag.
   - **Zoom**: Mouse wheel, trackpad pinch, or HUD buttons (`+`, `-`, `100%`).
   - **Recenter**: One-click origin reset to `(0, 0)`.
-  - **Touch & Pinch**: Full multi-touch support for tablets and mobile devices.
-  - **High-DPI / Retina Ready**: Crisp rendering using native `devicePixelRatio`.
-  - **Zero Build Dependencies**: Pure HTML5 Canvas, modern CSS, and vanilla JavaScript. Runs anywhere without any build step or bundle tool.
+- **Zero Build Dependencies**: Pure HTML5 Canvas, modern CSS, and vanilla JavaScript. Runs anywhere without build tools.
 
 ---
 
@@ -25,28 +33,12 @@ Live Demo on GitHub Pages: `https://aditya-pratap15.github.io/Master-workflow-ca
 
 | Action | Control |
 |---|---|
+| **Add New Tab** | Click the circular `+` button at the top-left |
+| **Switch Tabs** | Click any tab pill |
+| **Rename Tab** | Double-click the tab name |
+| **Save / Lock Tab** | Click the mini lock button `🔒` → "Save this tab permanently" |
+| **Delete Tab** | Click the mini lock button `🔒` → "Delete this tab" |
 | **Zoom In / Out** | Mouse Wheel / Trackpad Pinch / `+` and `-` keys |
 | **Pan Canvas** | Click & Drag anywhere on canvas / Touch Drag |
 | **Reset Zoom (100%)** | Click `100%` on HUD or press `0` |
 | **Recenter Origin** | Click the Recenter button in the bottom-right HUD |
-
----
-
-## 🚀 How to Host on GitHub Pages (100% Free)
-
-Since this project has no build step and runs purely on static HTML/CSS/JS, you can host it directly on **GitHub Pages** for free in less than 1 minute:
-
-1. Go to your repository on GitHub:  
-   👉 [https://github.com/aditya-Pratap15/Master-workflow-canvas](https://github.com/aditya-Pratap15/Master-workflow-canvas)
-2. Click on the **Settings** tab (the gear icon at the top of the repository).
-3. In the left sidebar, click on **Pages** (under the "Code and automation" section).
-4. Under **Build and deployment**:
-   - **Source**: Select `Deploy from a branch`.
-   - **Branch**: Choose `main` branch.
-   - **Folder**: Leave as `/ (root)`.
-5. Click **Save**.
-6. Wait ~30 to 60 seconds. Refresh the page, and GitHub will provide you with your live URL:
-   ```
-   https://aditya-pratap15.github.io/Master-workflow-canvas/
-   ```
-7. Open the URL on any browser, mobile phone, or tablet!
