@@ -4,12 +4,11 @@
   --grid-dot-color: #B8B0A2;
   --text-main: #2C2825;
   --text-muted: #797167;
-  --panel-bg: rgba(255, 255, 255, 0.82);
+  --panel-bg: rgba(255, 255, 255, 0.85);
   --panel-border: rgba(44, 40, 37, 0.08);
   --panel-shadow: 0 4px 20px -2px rgba(44, 40, 37, 0.07), 0 2px 6px -1px rgba(44, 40, 37, 0.04);
   --btn-hover: rgba(44, 40, 37, 0.06);
   --btn-active: rgba(44, 40, 37, 0.1);
-  --accent-color: #5C5549;
 }
 
 * {
@@ -45,45 +44,7 @@ body.is-dragging #infinite-canvas {
   cursor: grabbing;
 }
 
-/* Header & Brand */
-.app-header {
-  position: absolute;
-  top: 18px;
-  left: 20px;
-  pointer-events: none;
-  z-index: 10;
-}
-
-.brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  background: var(--panel-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  padding: 8px 16px;
-  border-radius: 9999px;
-  border: 1px solid var(--panel-border);
-  box-shadow: var(--panel-shadow);
-  pointer-events: auto;
-}
-
-.brand-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: #E07A5F;
-  box-shadow: 0 0 0 3px rgba(224, 122, 95, 0.2);
-}
-
-.brand-title {
-  font-size: 13.5px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  color: var(--text-main);
-}
-
-/* Floating Bottom-Right HUD */
+/* Floating Bottom-Right Zoom HUD */
 .hud-controls {
   position: absolute;
   bottom: 22px;
@@ -143,54 +104,9 @@ body.is-dragging #infinite-canvas {
   margin: 0 2px;
 }
 
-/* Instructions / Shortcuts Overlay */
-.instructions-panel {
-  position: absolute;
-  bottom: 22px;
-  left: 22px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  pointer-events: none;
-  z-index: 10;
-  opacity: 0.78;
-  transition: opacity 0.2s ease;
-}
-
-.instructions-panel:hover {
-  opacity: 1;
-}
-
-.instruction-item {
-  font-size: 11.5px;
-  color: var(--text-muted);
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-kbd {
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(44, 40, 37, 0.12);
-  border-radius: 4px;
-  padding: 1.5px 5px;
-  font-size: 10.5px;
-  font-family: inherit;
-  font-weight: 600;
-  color: var(--text-main);
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
-}
-
 @media (max-width: 600px) {
-  .instructions-panel {
-    display: none;
-  }
   .hud-controls {
     bottom: 16px;
     right: 16px;
-  }
-  .app-header {
-    top: 16px;
-    left: 16px;
   }
 }
